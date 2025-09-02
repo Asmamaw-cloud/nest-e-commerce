@@ -1,17 +1,28 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete } from '@nestjs/common';
 import { ReviewsService } from './reviews.service';
+import { CreateReviewDto } from './dto/create-review.dto';
 
 @Controller('reviews')
 export class ReviewsController {
   constructor(private readonly reviewsService: ReviewsService) {}
 
   @Post()
-  create(@Body() body: any) {
-    return this.reviewsService.create(body);
+  create(@Body() createReviewDto: CreateReviewDto) {
+    return this.reviewsService.create(createReviewDto);
+  }
+
+  @Get()
+  findAll() {
+    return this.reviewsService.findAll();
   }
 
   @Get('product/:productId')
-  findByProduct(@Param('productId') productId: number) {
-    return this.reviewsService.findAllByProduct(productId);
+  findByProduct(@Param('productId') productId: string) {
+    return this.reviewsService.findByProduct(productId);
+  }
+
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.reviewsService.remove(id);
   }
 }

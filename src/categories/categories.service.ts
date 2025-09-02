@@ -1,31 +1,32 @@
 import { Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { Category, CategoryDocument } from './schemas/category.schema';
+import { CreateCategoryDto } from './dto/create-category.dto';
+import { UpdateCategoryDto } from './dto/update-category.dto';
 
 @Injectable()
 export class CategoriesService {
-  private categories = [];
+  constructor(@InjectModel(Category.name) private categoryModel: Model<CategoryDocument>) {}
+
+  create(createCategoryDto: CreateCategoryDto) {
+    const category = new this.categoryModel(createCategoryDto);
+    return category.save();
+  }
 
   findAll() {
-    return this.categories;
+    return this.categoryModel.find().exec();
   }
 
-  findOne(id: number) {
-    return this.categories.find(c => c.id === id);
+  findOne(id: string) {
+    return this.categoryModel.findById(id).exec();
   }
 
-  create(data: any) {
-    const category = { id: Date.now(), ...data };
-    this.categories.push(category);
-    return category;
+  update(id: string, updateCategoryDto: UpdateCategoryDto) {
+    return this.categoryModel.findByIdAndUpdate(id, updateCategoryDto, { new: true }).exec();
   }
 
-  update(id: number, data: any) {
-    const category = this.findOne(id);
-    Object.assign(category, data);
-    return category;
-  }
-
-  remove(id: number) {
-    this.categories = this.categories.filter(c => c.id !== id);
-    return { message: 'Category removed' };
+  remove(id: string) {
+    return this.categoryModel.findByIdAndDelete(id).exec();
   }
 }

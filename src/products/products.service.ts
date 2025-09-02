@@ -1,31 +1,32 @@
 import { Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { Product, ProductDocument } from './schemas/product.schema';
+import { CreateProductDto } from './dto/create-product.dto';
+import { UpdateProductDto } from './dto/update-product.dto';
 
 @Injectable()
 export class ProductsService {
-  private products = [];
+  constructor(@InjectModel(Product.name) private productModel: Model<ProductDocument>) {}
+
+  create(createProductDto: CreateProductDto) {
+    const product = new this.productModel(createProductDto);
+    return product.save();
+  }
 
   findAll() {
-    return this.products;
+    return this.productModel.find().exec();
   }
 
-  findOne(id: number) {
-    return this.products.find(p => p.id === id);
+  findOne(id: string) {
+    return this.productModel.findById(id).exec();
   }
 
-  create(productData: any) {
-    const product = { id: Date.now(), ...productData };
-    this.products.push(product);
-    return product;
+  update(id: string, updateProductDto: UpdateProductDto) {
+    return this.productModel.findByIdAndUpdate(id, updateProductDto, { new: true }).exec();
   }
 
-  update(id: number, updateData: any) {
-    const product = this.findOne(id);
-    Object.assign(product, updateData);
-    return product;
-  }
-
-  remove(id: number) {
-    this.products = this.products.filter(p => p.id !== id);
-    return { message: 'Product removed' };
+  remove(id: string) {
+    return this.productModel.findByIdAndDelete(id).exec();
   }
 }

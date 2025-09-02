@@ -1,11 +1,11 @@
 import { IsNotEmpty, IsNumber, IsString, MaxLength, Min } from 'class-validator';
 
 export class CreateReviewDto {
-  @IsNumber()
-  productId: number;
+  @IsString()
+productId: string;
 
-  @IsNumber()
-  userId: number;
+@IsString()
+userId: string;
 
   @IsNumber()
   @Min(1)

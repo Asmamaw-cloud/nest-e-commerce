@@ -1,21 +1,34 @@
 import { Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { Cart, CartDocument } from './schemas/cart.schema';
+import { AddToCartDto } from './dto/add-to-cart.dto';
 
 @Injectable()
 export class CartService {
-  private carts: Record<number, any[]> = {}; // userId -> items[]
+  constructor(@InjectModel(Cart.name) private cartModel: Model<CartDocument>) {}
 
-  addItem(userId: number, product: any) {
-    if (!this.carts[userId]) this.carts[userId] = [];
-    this.carts[userId].push(product);
-    return this.carts[userId];
+  addToCart(userId: string, addToCartDto: AddToCartDto) {
+    return this.cartModel.findOneAndUpdate(
+      { user: userId },
+      { $push: { items: addToCartDto } },
+      { new: true, upsert: true },
+    ).exec();
   }
 
-  getCart(userId: number) {
-    return this.carts[userId] || [];
+  getCart(userId: string) {
+    return this.cartModel.findOne({ user: userId }).populate('items.product').exec();
   }
 
-  removeItem(userId: number, productId: number) {
-    this.carts[userId] = (this.carts[userId] || []).filter(p => p.id !== productId);
-    return this.carts[userId];
+  removeItem(userId: string, productId: string) {
+    return this.cartModel.findOneAndUpdate(
+      { user: userId },
+      { $pull: { items: { product: productId } } },
+      { new: true },
+    ).exec();
+  }
+
+  clearCart(userId: string) {
+    return this.cartModel.findOneAndUpdate({ user: userId }, { items: [] }, { new: true }).exec();
   }
 }
